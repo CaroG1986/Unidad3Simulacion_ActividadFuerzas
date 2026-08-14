@@ -10,7 +10,7 @@ No se espera que memorices Three.js, TSL o WebGPU. Sí debes poder:
 4. Usar predicciones y observaciones para detectar una implementación incorrecta;
 5. Modificar deliberadamente el sistema con ayuda de IA;
 6. Desplegar una URL funcional;
-7. Convertir parámetros del sistema en controles expresivos para una interpretación en vivo.
+7. Convertir parámetros del sistema en controles expresivos para una interpretación en vivo.🥇
 
 ## Modelo mental
 
