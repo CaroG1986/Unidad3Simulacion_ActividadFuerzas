@@ -12,6 +12,7 @@ de materializar las ideas.
 - Navegador con WebGPU habilitado; usa una versión actual de Chrome, Edge o un navegador con soporte equivalente.
 - Git necesario para clonar el repositorio y trabajar localmente.
 
+
 ## Clonar y poner en funcionamiento
 
 Clona el repositorio y entra en la carpeta del proyecto:
