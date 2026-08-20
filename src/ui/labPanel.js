@@ -62,7 +62,7 @@ function button(parent, label, onClick) {
   return b;
 }
 
-export function createLabPanel({ params, onReset, onPreset, onModeChange, onPauseChange }) {
+export function createLabPanel({ params, onReset, onPreset, onModeChange, onPauseChange, onNextColorPalette, getCurrentPaletteName }) {
   const refreshers = [];
   const panel = document.createElement('aside');
   panel.className = 'panel';
@@ -83,21 +83,52 @@ export function createLabPanel({ params, onReset, onPreset, onModeChange, onPaus
     radialStrength: params.radialStrength.value,
     vortexStrength: params.vortexStrength.value,
     dragCoefficient: params.dragCoefficient.value,
+    lightningStrength: params.lightningStrength.value,
+    lsystemStrength: params.lsystemStrength.value,
+    lsystemAngle: params.lsystemAngle.value,
+    lsystemScaleBoost: params.lsystemScaleBoost.value,
     windX: params.wind.value.x,
-    windY: params.wind.value.y
+    windY: params.wind.value.y,
+    windZ: params.windZ.value // <-- Estado inicial de windZ
   };
 
   refreshers.push(rangeRow(sim, 'timeScale', state, 'timeScale', 0, 2, 0.01, (v) => params.timeScale.value = v, () => params.timeScale.value));
   refreshers.push(rangeRow(sim, 'maxSpeed', state, 'maxSpeed', 0.2, 12, 0.1, (v) => params.maxSpeed.value = v, () => params.maxSpeed.value));
   refreshers.push(rangeRow(sim, 'particleSize', state, 'particleSize', 0.005, 0.1, 0.001, (v) => params.particleSize.value = v, () => params.particleSize.value));
 
+  const visualGroup = document.createElement('div');
+  visualGroup.className = 'group';
+  visualGroup.innerHTML = '<h2>Aspecto Visual</h2>';
+  panel.append(visualGroup);
+
+  const colorBtn = button(visualGroup, `Degradado: ${getCurrentPaletteName ? getCurrentPaletteName() : 'Cambiar'}`, () => {
+    if (onNextColorPalette) {
+      const newName = onNextColorPalette();
+      colorBtn.textContent = `Degradado: ${newName}`;
+    }
+  });
+
+  refreshers.push({
+    refresh() {
+      if (getCurrentPaletteName) {
+        colorBtn.textContent = `Degradado: ${getCurrentPaletteName()}`;
+      }
+    }
+  });
+
   const force = document.createElement('div');
   force.className = 'group';
   force.innerHTML = '<h2>Fuerzas</h2>';
   panel.append(force);
 
+  refreshers.push(checkRow(force, 'Sistema L / Ramas (T)', params.lsystemEnabled.value > 0, (v) => params.lsystemEnabled.value = v ? 1 : 0, () => params.lsystemEnabled.value > 0));
+  refreshers.push(rangeRow(force, 'lsystemStrength', state, 'lsystemStrength', 5, 80, 1, (v) => params.lsystemStrength.value = v, () => params.lsystemStrength.value));
+  refreshers.push(rangeRow(force, 'lsystemAngle', state, 'lsystemAngle', 0.1, 1.2, 0.02, (v) => params.lsystemAngle.value = v, () => params.lsystemAngle.value));
+  refreshers.push(rangeRow(force, 'lsystemScaleBoost', state, 'lsystemScaleBoost', 1.0, 6.0, 0.1, (v) => params.lsystemScaleBoost.value = v, () => params.lsystemScaleBoost.value));
+  refreshers.push(checkRow(force, 'Rayos (L)', params.lightningEnabled.value > 0, (v) => params.lightningEnabled.value = v ? 1 : 0, () => params.lightningEnabled.value > 0));
+  refreshers.push(rangeRow(force, 'lightningStrength', state, 'lightningStrength', 10, 150, 1, (v) => params.lightningStrength.value = v, () => params.lightningStrength.value));
   refreshers.push(checkRow(force, 'Radial', params.radialEnabled.value > 0, (v) => params.radialEnabled.value = v ? 1 : 0, () => params.radialEnabled.value > 0));
-  refreshers.push(rangeRow(force, 'radialStrength', state, 'radialStrength', -8, 8, 0.05, (v) => params.radialStrength.value = v, () => params.radialStrength.value));
+  refreshers.push(rangeRow(force, 'radialStrength', state, 'radialStrength', -50, 50, 0.1, (v) => params.radialStrength.value = v, () => params.radialStrength.value));
   refreshers.push(checkRow(force, 'Vórtice', params.vortexEnabled.value > 0, (v) => params.vortexEnabled.value = v ? 1 : 0, () => params.vortexEnabled.value > 0));
   refreshers.push(rangeRow(force, 'vortexStrength', state, 'vortexStrength', -8, 8, 0.05, (v) => params.vortexStrength.value = v, () => params.vortexStrength.value));
   refreshers.push(checkRow(force, 'Drag', params.dragEnabled.value > 0, (v) => params.dragEnabled.value = v ? 1 : 0, () => params.dragEnabled.value > 0));
@@ -105,6 +136,8 @@ export function createLabPanel({ params, onReset, onPreset, onModeChange, onPaus
   refreshers.push(checkRow(force, 'Viento', params.windEnabled.value > 0, (v) => params.windEnabled.value = v ? 1 : 0, () => params.windEnabled.value > 0));
   refreshers.push(rangeRow(force, 'wind.x', state, 'windX', -4, 4, 0.05, (v) => params.wind.value.x = v, () => params.wind.value.x));
   refreshers.push(rangeRow(force, 'wind.y', state, 'windY', -4, 4, 0.05, (v) => params.wind.value.y = v, () => params.wind.value.y));
+  // Slider para controlar el eje Z del viento [-50, 50]
+  refreshers.push(rangeRow(force, 'wind.z', state, 'windZ', -50, 50, 0.1, (v) => params.windZ.value = v, () => params.windZ.value));
 
   const tests = document.createElement('div');
   tests.className = 'group';

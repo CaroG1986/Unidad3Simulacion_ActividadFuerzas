@@ -51,11 +51,11 @@ async function main() {
   const simulation = createSimulation({ renderer, scene, params, count: PARTICLE_COUNT });
 
   // LAB HELPERS -----------------------------------------------------------
-  const attractorHelper = new THREE.Mesh(
+ /*st attractorHelper = new THREE.Mesh(
     new THREE.SphereGeometry(0.12, 16, 12),
     new THREE.MeshBasicMaterial({ color: '#ffffff' })
   );
-  scene.add(attractorHelper);
+  scene.add(attractorHelper);*/
   const axes = new THREE.AxesHelper(1.5);
   scene.add(axes);
 
@@ -66,13 +66,13 @@ async function main() {
   const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
   const hit = new THREE.Vector3();
 
-  addEventListener('pointermove', (event) => {
+ addEventListener('pointermove', (event) => {
     pointerNdc.x = (event.clientX / innerWidth) * 2 - 1;
     pointerNdc.y = -(event.clientY / innerHeight) * 2 + 1;
     raycaster.setFromCamera(pointerNdc, camera);
     if (raycaster.ray.intersectPlane(interactionPlane, hit)) {
       params.attractor.value.copy(hit);
-      attractorHelper.position.copy(hit);
+      // attractorHelper.position.copy(hit); <-- Comentar esta línea también
     }
   });
 
@@ -113,17 +113,38 @@ async function main() {
     panel?.refresh();
   };
 
+  // PALETAS DE DEGRADADOS DE COLOR ---------------------------------------
+  const COLOR_PALETTES = [
+    { name: 'Cian · Ámbar', slow: '#46a6ff', fast: '#ffb35a' },
+    { name: 'Cyberpunk Neón', slow: '#8a2be2', fast: '#00ffff' },
+    { name: 'Fuego / Magma', slow: '#ff1e00', fast: '#ffee44' },
+    { name: 'Aurora Esmeralda', slow: '#004d40', fast: '#00ff88' },
+    { name: 'Atardecer Violeta', slow: '#311b92', fast: '#ff4081' },
+    { name: 'Glaciar Eléctrico', slow: '#001f3f', fast: '#7fdbff' }
+  ];
+
+  let currentPaletteIndex = 0;
+  const targetSlowColor = new THREE.Color(COLOR_PALETTES[0].slow);
+  const targetFastColor = new THREE.Color(COLOR_PALETTES[0].fast);
+
+  const nextColorPalette = () => {
+    currentPaletteIndex = (currentPaletteIndex + 1) % COLOR_PALETTES.length;
+    const p = COLOR_PALETTES[currentPaletteIndex];
+    targetSlowColor.set(p.slow);
+    targetFastColor.set(p.fast);
+    return p.name;
+  };
+
+  const getCurrentPaletteName = () => COLOR_PALETTES[currentPaletteIndex].name;
+
   const setMode = (next) => {
     mode = next;
     const lab = mode === 'LAB';
     panel.setVisible(lab);
     axes.visible = lab;
-    attractorHelper.visible = lab;
-    //orbit.enabled = lab;
     hud.innerHTML = lab
-      ? '<strong>LAB</strong> · P: performance · R: reset · 1–5: pruebas'
-      //: '<strong>PERFORMANCE</strong> · P: lab · espacio: invertir radial · puntero: atractor';
-      : '';
+      ? '<strong>LAB</strong> · P: performance · R: reset · C: color · L: rayos · T: ramas (L-System) · 1–5: pruebas'
+      : '<strong>PERFORMANCE</strong> · P: lab · C: color · L: rayos · T: ramas (L-System) · A/S/D: fuerzas';
   };
 
   panel = createLabPanel({
@@ -131,7 +152,12 @@ async function main() {
     onReset: () => simulation.reset(),
     onPreset: applyPreset,
     onModeChange: () => setMode(mode === 'LAB' ? 'PERFORMANCE' : 'LAB'),
-    onPauseChange: () => paused = !paused
+    onPauseChange: () => paused = !paused,
+    onNextColorPalette: () => {
+      const name = nextColorPalette();
+      return name;
+    },
+    getCurrentPaletteName
   });
 
   const hud = document.createElement('div');
@@ -140,33 +166,91 @@ async function main() {
   setMode('LAB');
 
   // BASELINE LIVE INSTRUMENT MAPPING -------------------------------------
-  // Students are expected to redesign this mapping for their own instrument.
+  savedRadialStrength = params.radialStrength.value;
+  savedRadialEnabled = params.radialEnabled.value;
+
+  // Configuración de la máquina de estados en JS
+  const BOUNDARY_STATES = {
+    OFF: 0.0,
+    HARD: 1.0,
+    SOFT: 2.0
+  };
+
+  let currentBoundaryState = BOUNDARY_STATES.HARD;
+
+  function toggleBoundaryState() {
+    if (currentBoundaryState === BOUNDARY_STATES.HARD) {
+      currentBoundaryState = BOUNDARY_STATES.OFF;
+      console.log('Límite: DESACTIVADO (Partículas libres)');
+    } else if (currentBoundaryState === BOUNDARY_STATES.OFF) {
+      currentBoundaryState = BOUNDARY_STATES.SOFT;
+      console.log('Límite: CAMPO DE FUERZA SUAVE');
+    } else {
+      currentBoundaryState = BOUNDARY_STATES.HARD;
+      console.log('Límite: PARED SÓLIDA');
+    }
+
+    params.boundaryMode.value = currentBoundaryState;
+  }
+
+  // Event listener para teclado
   addEventListener('keydown', (event) => {
-    //console.log('radial inverted', params.radialStrength.value);
     if (event.repeat) return;
+
     if (event.code === 'KeyP') setMode(mode === 'LAB' ? 'PERFORMANCE' : 'LAB');
     if (event.code === 'KeyR') simulation.reset();
-    if (event.code === 'Digit1') applyPreset('inertia');
-    if (event.code === 'Digit2') applyPreset('wind');
-    if (event.code === 'Digit3') applyPreset('attract');
-    if (event.code === 'Digit4') applyPreset('repel');
-    if (event.code === 'Digit5') applyPreset('vortex');
 
-    if (event.code === 'Space') {
+    // Transición de degradado de color con la tecla C
+    if (event.code === 'KeyC') {
+      nextColorPalette();
+      panel?.refresh();
+    }
+
+    // Activar/Desactivar Estado de Rayos con la tecla L (Toggle)
+    if (event.code === 'KeyL') {
+      params.lightningEnabled.value = params.lightningEnabled.value > 0 ? 0.0 : 1.0;
+      panel?.refresh();
+    }
+
+    // Activar/Desactivar Estado de Ramas / L-System con la tecla T (Tree/Bifurcación)
+    if (event.code === 'KeyT') {
+      params.lsystemEnabled.value = params.lsystemEnabled.value > 0 ? 0.0 : 1.0;
+      panel?.refresh();
+    }
+
+    // Cambiar estado de límites (B)
+    if (event.code === 'KeyB') {
+      toggleBoundaryState();
+    }
+
+    // ATRACCIÓN HACIA EL MOUSE (Mantener 'A' o 'Space')
+    if (event.code === 'KeyA' || event.code === 'Space') {
       event.preventDefault();
-      //savedRadialStrength = params.radialStrength.value || 2.0;
-      savedRadialStrength = params.radialStrength.value;
-      savedRadialEnabled = params.radialEnabled.value;
-      params.radialEnabled.value = 1;
-      params.radialStrength.value = -(savedRadialStrength || 2.0);
-      //console.log('radial inverted', params.radialStrength.value);
+      params.radialEnabled.value = 1.0;
+      params.radialStrength.value = 25.0; // Positivo
+    }
+
+    // REPULSIÓN HACIA EL MOUSE (Mantener 'S')
+    if (event.code === 'KeyS') {
+      event.preventDefault();
+      params.radialEnabled.value = 1.0;
+      params.radialStrength.value = -25.0; // Negativo
+    }
+
+    // DISPERSIÓN ENTRE SÍ / EXPANSIÓN (Mantener 'D')
+    if (event.code === 'KeyD') {
+      event.preventDefault();
+      params.dispersionEnabled.value = 1.0;
     }
   });
 
   addEventListener('keyup', (event) => {
-    if (event.code === 'Space') {
-      params.radialEnabled.value = savedRadialEnabled;
-      params.radialStrength.value = savedRadialStrength;
+    if (event.code === 'KeyA' || event.code === 'Space' || event.code === 'KeyS') {
+      params.radialEnabled.value = 0.0;
+    }
+
+    if (event.code === 'KeyD') {
+      params.dispersionEnabled.value = 0.0;
     }
   });
 
@@ -178,9 +262,19 @@ async function main() {
 
   simulation.reset();
 
+  const clock = new THREE.Clock();
+
   // FRAME LOOP ------------------------------------------------------------
   renderer.setAnimationLoop(() => {
+    const delta = clock.getDelta();
+    params.time.value += delta;
+
     if (!paused) simulation.stepSimulation();
+
+    // Transición suave (Lerp) de color en cada cuadro
+    params.colorSlow.value.lerp(targetSlowColor, 0.05);
+    params.colorFast.value.lerp(targetFastColor, 0.05);
+
     orbit.update();
     renderer.render(scene, camera);
   });
