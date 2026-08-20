@@ -143,8 +143,8 @@ async function main() {
     panel.setVisible(lab);
     axes.visible = lab;
     hud.innerHTML = lab
-      ? '<strong>LAB</strong> · Flechas: Viento X/Y · 1/2: Viento Z · P: perf · C: color · L: rayos · T: ramas'
-      : '<strong>PERFORMANCE</strong> · Flechas: Viento X/Y · 1/2: Viento Z · P: lab · C: color · L: rayos · T: ramas · A/S/D: fuerzas';
+      ? '<strong>LAB</strong> · Flechas: Viento X/Y · 1/2: Viento Z · 3/4: Vel Máx · 5/6: Rayos · 7/8: Vórtice · V: Vórtice on/off · L: Rayos on/off · T: Ramas on/off · C: Color'
+      : '<strong>PERFORMANCE</strong> · Flechas: Viento X/Y · 1-8: Sliders · V: Vórtice · L: Rayos · T: Ramas · C: Color · A/S/D: Fuerzas';
   };
 
   panel = createLabPanel({
@@ -196,7 +196,7 @@ async function main() {
   // Event listener para teclado
   addEventListener('keydown', (event) => {
     // =========================================================================
-    // CONTROL DEL VIENTO POR TECLADO
+    // CONTROL DE SLIDERS POR TECLADO (PERMITE MANTENER PRESIONADO)
     // =========================================================================
     // Flechas Izquierda/Derecha: Viento en X [-4 a 4]
     if (event.code === 'ArrowLeft') {
@@ -222,7 +222,7 @@ async function main() {
       panel?.refresh();
     }
 
-    // Tecla 1 y 2: Viento en Z [-50 a 50] (1 disminuye, 2 aumenta)
+    // Teclas 1 y 2: Viento en Z [-50 a 50] (1 disminuye, 2 aumenta)
     if (event.code === 'Digit1') {
       event.preventDefault();
       params.windZ.value = Math.max(-50.0, Number((params.windZ.value - 1.0).toFixed(1)));
@@ -231,6 +231,42 @@ async function main() {
     if (event.code === 'Digit2') {
       event.preventDefault();
       params.windZ.value = Math.min(50.0, Number((params.windZ.value + 1.0).toFixed(1)));
+      panel?.refresh();
+    }
+
+    // Teclas 3 y 4: Velocidad Máxima (maxSpeed) [0.2 a 12]
+    if (event.code === 'Digit3') {
+      event.preventDefault();
+      params.maxSpeed.value = Math.max(0.2, Number((params.maxSpeed.value - 0.2).toFixed(1)));
+      panel?.refresh();
+    }
+    if (event.code === 'Digit4') {
+      event.preventDefault();
+      params.maxSpeed.value = Math.min(12.0, Number((params.maxSpeed.value + 0.2).toFixed(1)));
+      panel?.refresh();
+    }
+
+    // Teclas 5 y 6: Fuerza de Rayos (lightningStrength) [10 a 150]
+    if (event.code === 'Digit5') {
+      event.preventDefault();
+      params.lightningStrength.value = Math.max(10.0, Number((params.lightningStrength.value - 2.0).toFixed(1)));
+      panel?.refresh();
+    }
+    if (event.code === 'Digit6') {
+      event.preventDefault();
+      params.lightningStrength.value = Math.min(150.0, Number((params.lightningStrength.value + 2.0).toFixed(1)));
+      panel?.refresh();
+    }
+
+    // Teclas 7 y 8: Fuerza del Vórtice (vortexStrength) [-8 a 8]
+    if (event.code === 'Digit7') {
+      event.preventDefault();
+      params.vortexStrength.value = Math.max(-8.0, Number((params.vortexStrength.value - 0.2).toFixed(2)));
+      panel?.refresh();
+    }
+    if (event.code === 'Digit8') {
+      event.preventDefault();
+      params.vortexStrength.value = Math.min(8.0, Number((params.vortexStrength.value + 0.2).toFixed(2)));
       panel?.refresh();
     }
 
@@ -249,6 +285,12 @@ async function main() {
     // Activar/Desactivar Estado de Rayos con la tecla L (Toggle)
     if (event.code === 'KeyL') {
       params.lightningEnabled.value = params.lightningEnabled.value > 0 ? 0.0 : 1.0;
+      panel?.refresh();
+    }
+
+    // Activar/Desactivar Vórtice con la tecla V (Toggle)
+    if (event.code === 'KeyV') {
+      params.vortexEnabled.value = params.vortexEnabled.value > 0 ? 0.0 : 1.0;
       panel?.refresh();
     }
 
