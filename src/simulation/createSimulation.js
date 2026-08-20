@@ -21,7 +21,7 @@ export function createSimulation({ renderer, scene, params, count = 131072 }) {
   const positionBuffer = instancedArray(count, 'vec3');
   const velocityBuffer = instancedArray(count, 'vec3');
 
-  // INITIALIZATION --------------------------------------------------------
+  // INITIALIZATION ------------------------------------------------------
   const initParticles = Fn(() => {
     const i = instanceIndex;
     const p = positionBuffer.element(i);
@@ -73,10 +73,10 @@ export function createSimulation({ renderer, scene, params, count = 131072 }) {
     const toAttractor = params.attractor.sub(p);
     const distance = max(toAttractor.length(), params.softening);
     const radialDirection = toAttractor.div(distance);
-    
+
     // Condición: Si boundaryMode != 0.0 (HARD o SOFT)
     const isSphereActive = params.boundaryMode.notEqual(float(0.0));
-    
+
     const radialForce = radialDirection
       .mul(params.radialStrength)
       .div(distance.pow(float(2.0)))
@@ -106,7 +106,7 @@ export function createSimulation({ renderer, scene, params, count = 131072 }) {
     const level1 = pIdx.mul(float(0.5)).fract().sub(float(0.25)).mul(float(4.0)); // Variación -1 a +1
     const level2 = pIdx.mul(float(0.25)).fract().sub(float(0.5)).mul(float(1.5));
     const branchAngle = params.lsystemAngle.mul(level1.add(level2));
-    
+
     // Rotación del vector radial para generar bifurcaciones en abanico/árbol fractal
     const cosA = branchAngle.cos();
     const sinA = branchAngle.sin();
@@ -166,7 +166,7 @@ export function createSimulation({ renderer, scene, params, count = 131072 }) {
   });
 
   material.positionNode = positionBuffer.toAttribute();
-  
+
   // Aumento de tamaño dinámico cuando el Sistema L está activo para resaltar las ramas
   material.scaleNode = params.particleSize.mul(
     mix(float(1.0), params.lsystemScaleBoost, params.lsystemEnabled)

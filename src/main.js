@@ -143,8 +143,8 @@ async function main() {
     panel.setVisible(lab);
     axes.visible = lab;
     hud.innerHTML = lab
-      ? '<strong>LAB</strong> · P: performance · R: reset · C: color · L: rayos · T: ramas (L-System) · 1–5: pruebas'
-      : '<strong>PERFORMANCE</strong> · P: lab · C: color · L: rayos · T: ramas (L-System) · A/S/D: fuerzas';
+      ? '<strong>LAB</strong> · Flechas: Viento X/Y · 1/2: Viento Z · P: perf · C: color · L: rayos · T: ramas'
+      : '<strong>PERFORMANCE</strong> · Flechas: Viento X/Y · 1/2: Viento Z · P: lab · C: color · L: rayos · T: ramas · A/S/D: fuerzas';
   };
 
   panel = createLabPanel({
@@ -195,6 +195,46 @@ async function main() {
 
   // Event listener para teclado
   addEventListener('keydown', (event) => {
+    // =========================================================================
+    // CONTROL DEL VIENTO POR TECLADO
+    // =========================================================================
+    // Flechas Izquierda/Derecha: Viento en X [-4 a 4]
+    if (event.code === 'ArrowLeft') {
+      event.preventDefault();
+      params.wind.value.x = Math.max(-4.0, Number((params.wind.value.x - 0.1).toFixed(2)));
+      panel?.refresh();
+    }
+    if (event.code === 'ArrowRight') {
+      event.preventDefault();
+      params.wind.value.x = Math.min(4.0, Number((params.wind.value.x + 0.1).toFixed(2)));
+      panel?.refresh();
+    }
+
+    // Flechas Arriba/Abajo: Viento en Y [-4 a 4]
+    if (event.code === 'ArrowUp') {
+      event.preventDefault();
+      params.wind.value.y = Math.min(4.0, Number((params.wind.value.y + 0.1).toFixed(2)));
+      panel?.refresh();
+    }
+    if (event.code === 'ArrowDown') {
+      event.preventDefault();
+      params.wind.value.y = Math.max(-4.0, Number((params.wind.value.y - 0.1).toFixed(2)));
+      panel?.refresh();
+    }
+
+    // Tecla 1 y 2: Viento en Z [-50 a 50] (1 disminuye, 2 aumenta)
+    if (event.code === 'Digit1') {
+      event.preventDefault();
+      params.windZ.value = Math.max(-50.0, Number((params.windZ.value - 1.0).toFixed(1)));
+      panel?.refresh();
+    }
+    if (event.code === 'Digit2') {
+      event.preventDefault();
+      params.windZ.value = Math.min(50.0, Number((params.windZ.value + 1.0).toFixed(1)));
+      panel?.refresh();
+    }
+
+    // A partir de aquí no permitir repetición continua innecesaria para toggles
     if (event.repeat) return;
 
     if (event.code === 'KeyP') setMode(mode === 'LAB' ? 'PERFORMANCE' : 'LAB');
