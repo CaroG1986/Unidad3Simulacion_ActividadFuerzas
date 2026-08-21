@@ -133,7 +133,7 @@ export function createLabPanel({ params, onReset, onPreset, onModeChange, onPaus
   refreshers.push(rangeRow(force, 'vortexStrength', state, 'vortexStrength', -8, 8, 0.05, (v) => params.vortexStrength.value = v, () => params.vortexStrength.value));
   refreshers.push(checkRow(force, 'Drag', params.dragEnabled.value > 0, (v) => params.dragEnabled.value = v ? 1 : 0, () => params.dragEnabled.value > 0));
   refreshers.push(rangeRow(force, 'dragCoefficient', state, 'dragCoefficient', 0, 1, 0.01, (v) => params.dragCoefficient.value = v, () => params.dragCoefficient.value));
-  refreshers.push(checkRow(force, 'Viento', params.windEnabled.value > 0, (v) => params.windEnabled.value = v ? 1 : 0, () => params.windEnabled.value > 0));
+  refreshers.push(checkRow(force, 'Viento (W)', params.windEnabled.value > 0, (v) => params.windEnabled.value = v ? 1 : 0, () => params.windEnabled.value > 0));
   refreshers.push(rangeRow(force, 'wind.x', state, 'windX', -4, 4, 0.05, (v) => params.wind.value.x = v, () => params.wind.value.x));
   refreshers.push(rangeRow(force, 'wind.y', state, 'windY', -4, 4, 0.05, (v) => params.wind.value.y = v, () => params.wind.value.y));
   // Slider para controlar el eje Z del viento [-50, 50]

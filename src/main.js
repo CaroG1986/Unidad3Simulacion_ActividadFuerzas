@@ -143,8 +143,8 @@ async function main() {
     panel.setVisible(lab);
     axes.visible = lab;
     hud.innerHTML = lab
-      ? '<strong>LAB</strong> · Flechas: Viento X/Y · 1/2: Viento Z · 3/4: Vel Máx · 5/6: Rayos · 7/8: Vórtice · V: Vórtice on/off · L: Rayos on/off · T: Ramas on/off · C: Color'
-      : '<strong>PERFORMANCE</strong> · Flechas: Viento X/Y · 1-8: Sliders · V: Vórtice · L: Rayos · T: Ramas · C: Color · A/S/D: Fuerzas';
+      ? '<strong>LAB</strong> · Flechas: Viento X/Y · 1/2: Viento Z · 3/4: Vel Máx · 5/6: Rayos · 7/8: Vórtice · W: Viento on/off · V: Vórtice on/off · L: Rayos on/off · T: Ramas on/off · C: Color'
+      : '<strong>PERFORMANCE</strong> · Flechas: Viento X/Y · 1-8: Sliders · W: Viento · V: Vórtice · L: Rayos · T: Ramas · C: Color · A/S/D: Fuerzas';
   };
 
   panel = createLabPanel({
@@ -279,6 +279,12 @@ async function main() {
     // Transición de degradado de color con la tecla C
     if (event.code === 'KeyC') {
       nextColorPalette();
+      panel?.refresh();
+    }
+
+    // Activar/Desactivar Influencia del Viento con la tecla W (Toggle)
+    if (event.code === 'KeyW') {
+      params.windEnabled.value = params.windEnabled.value > 0 ? 0.0 : 1.0;
       panel?.refresh();
     }
 
