@@ -51,11 +51,11 @@ async function main() {
   const simulation = createSimulation({ renderer, scene, params, count: PARTICLE_COUNT });
 
   // LAB HELPERS -----------------------------------------------------------
- /*st attractorHelper = new THREE.Mesh(
-    new THREE.SphereGeometry(0.12, 16, 12),
-    new THREE.MeshBasicMaterial({ color: '#ffffff' })
-  );
-  scene.add(attractorHelper);*/
+  /*st attractorHelper = new THREE.Mesh(
+     new THREE.SphereGeometry(0.12, 16, 12),
+     new THREE.MeshBasicMaterial({ color: '#ffffff' })
+   );
+   scene.add(attractorHelper);*/
   const axes = new THREE.AxesHelper(1.5);
   scene.add(axes);
 
@@ -66,7 +66,7 @@ async function main() {
   const interactionPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
   const hit = new THREE.Vector3();
 
- addEventListener('pointermove', (event) => {
+  addEventListener('pointermove', (event) => {
     pointerNdc.x = (event.clientX / innerWidth) * 2 - 1;
     pointerNdc.y = -(event.clientY / innerHeight) * 2 + 1;
     raycaster.setFromCamera(pointerNdc, camera);
@@ -142,6 +142,7 @@ async function main() {
     const lab = mode === 'LAB';
     panel.setVisible(lab);
     axes.visible = lab;
+    document.body.style.cursor = lab ? 'default' : 'none';
     hud.innerHTML = lab
       ? '<strong>LAB</strong> · Flechas: Viento X/Y · 1/2: Viento Z · 3/4: Vel Máx · 5/6: Rayos · 7/8: Vórtice · W: Viento on/off · V: Vórtice on/off · L: Rayos on/off · T: Ramas on/off · C: Color'
       : '<strong>PERFORMANCE</strong> · Flechas: Viento X/Y · 1-8: Sliders · W: Viento · V: Vórtice · L: Rayos · T: Ramas · C: Color · A/S/D: Fuerzas';
